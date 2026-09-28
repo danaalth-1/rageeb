@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>رقيب | بوابة الرقابة الذكية</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b1f1a; --panel:#122e26; --panel-2:#0e2620; --line:#1e3d34;
+  --gold:#c9a25a; --gold-2:#e3c07f; --text:#eaf2ee; --muted:#9fb8ae;
+  --ok:#4caf7d; --warn:#e0b23a; --danger:#d9614f;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Tajawal',sans-serif;}
+h1,h2,h3{font-family:'Cairo',sans-serif;margin:0;}
+::-webkit-scrollbar{height:8px;width:8px;}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+
+.app{display:grid;grid-template-columns:220px 1fr;min-height:100vh;}
+@media (max-width:820px){.app{grid-template-columns:1fr;}
+  .sidebar{position:sticky;top:0;z-index:5;flex-direction:row;overflow-x:auto;height:auto;padding:10px 14px;gap:14px;}
+  .sidebar .brand{display:none;} .sidebar nav{display:flex;flex-direction:row;gap:10px;}
+  .sidebar nav a{white-space:nowrap;padding:8px 12px;}
+}
+
+.sidebar{background:var(--panel-2);border-left:1px solid var(--line);padding:22px 16px;display:flex;flex-direction:column;gap:26px;}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand .mark{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--gold),#8a6b2e);display:flex;align-items:center;justify-content:center;font-weight:900;color:#0b1f1a;font-family:'Cairo',sans-serif;}
+.brand .t1{font-weight:900;font-size:17px;display:block;}
+.brand .t2{font-size:11px;color:var(--muted);display:block;}
+nav{display:flex;flex-direction:column;gap:4px;}
+nav a{color:var(--muted);text-decoration:none;font-size:14px;padding:9px 12px;border-radius:8px;display:flex;align-items:center;gap:10px;transition:background .15s,color .15s;cursor:pointer;}
+nav a:hover{background:#173a30;color:var(--text);}
+nav a.active{background:#1a4436;color:var(--gold-2);font-weight:700;}
+nav .badge{margin-right:auto;background:var(--danger);color:#fff;font-size:10px;padding:1px 7px;border-radius:10px;}
+
+main{padding:22px 26px 60px;max-width:1400px;width:100%;}
+.view{display:none;}
+.view.active{display:block;animation:fade .25s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.topbar{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px;gap:12px;flex-wrap:wrap;}
+.topbar h1{font-size:22px;}
+.topbar p{color:var(--muted);font-size:13px;margin-top:4px;}
+.live{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ok);}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 1.8s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px;}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr);}}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;}
+.kpi .lbl{color:var(--muted);font-size:12px;}
+.kpi .val{font-size:24px;font-weight:900;font-family:'Cairo',sans-serif;margin-top:6px;}
+.kpi .delta{font-size:11px;margin-top:4px;}
+.kpi .delta.up{color:var(--ok);} .kpi .delta.down{color:var(--warn);}
+
+.grid{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;}
+@media (max-width:1000px){.grid{grid-template-columns:1fr;}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;}
+.card h3{font-size:15px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
+.card h3 .tag{font-size:11px;color:var(--muted);font-weight:400;font-family:'Tajawal',sans-serif;}
+
+.gatewrap{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);}
+.gatewrap img{width:100%;display:block;filter:saturate(.9) brightness(.85);}
+.gatewrap .scan{position:absolute;inset:0;background:linear-gradient(180deg,transparent 0%, rgba(201,162,90,.25) 48%, transparent 100%);height:40%;animation:scan 3.2s linear infinite;}
+@keyframes scan{0%{top:-40%}100%{top:100%}}
+.gate-meta{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;}
+.gate-meta div{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:12px;flex:1;min-width:120px;}
+.gate-meta div b{display:block;font-size:15px;margin-top:2px;font-family:'Cairo',sans-serif;}
+
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{color:var(--muted);font-weight:500;text-align:right;padding:6px 8px;font-size:12px;border-bottom:1px solid var(--line);}
+td{padding:9px 8px;border-bottom:1px solid var(--line);}
+tr.row{cursor:pointer;transition:background .15s;}
+tr.row:hover{background:#173a30;}
+tr.row.sel{background:#1a4436;}
+.status{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.status.ok{background:rgba(76,175,125,.15);color:var(--ok);}
+.status.warn{background:rgba(224,178,58,.15);color:var(--warn);}
+.status.info{background:rgba(159,184,174,.15);color:var(--muted);}
+
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.detail-grid .item{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;}
+.detail-grid .item .l{font-size:11px;color:var(--muted);}
+.detail-grid .item .v{font-size:15px;font-weight:700;font-family:'Cairo',sans-serif;margin-top:3px;}
+
+.homog{height:8px;border-radius:6px;background:var(--panel-2);overflow:hidden;margin-top:6px;}
+.homog span{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--ok));}
+
+.verdict{display:flex;align-items:center;gap:14px;padding:14px;border-radius:12px;}
+.verdict.ok{background:rgba(76,175,125,.12);border:1px solid rgba(76,175,125,.4);}
+.verdict.warn{background:rgba(224,178,58,.12);border:1px solid rgba(224,178,58,.4);}
+.verdict .icon{font-size:26px;}
+.verdict b{font-size:16px;display:block;}
+.verdict small{color:var(--muted);}
+
+.footer-note{color:var(--muted);font-size:11px;text-align:center;margin-top:24px;}
+
+
+.dategrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;}
+.dcell{background:var(--panel-2);border:2px solid var(--ok);border-radius:8px;padding:8px 6px;text-align:center;font-size:12px;}
+.dcell.odd{border-color:var(--danger);color:var(--danger);}
+
+.alertitem{display:flex;gap:12px;padding:12px;border-radius:10px;background:var(--panel-2);border:1px solid var(--line);margin-bottom:10px;align-items:flex-start;}
+.alertitem .ic{font-size:18px;}
+.alertitem b{display:block;font-size:13px;}
+.alertitem small{color:var(--muted);font-size:11px;}
+
+.chip{display:inline-block;background:var(--panel-2);border:1px solid var(--line);border-radius:20px;padding:4px 10px;font-size:12px;margin-left:6px;}
+.userrow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#8a6b2e);display:flex;align-items:center;justify-content:center;font-weight:700;color:#0b1f1a;font-family:'Cairo',sans-serif;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark">ر</div>
+      <div><span class="t1">رقيب</span><span class="t2">بوابة الرقابة الذكية</span></div>
+    </div>
+    <nav id="mainNav">
+      <a data-view="home" class="active">الصفحة الرئيسية</a>
+      <a data-view="entry">إدارة الدخول</a>
+      <a data-view="inspect">الفحص الذكي</a>
+      <a data-view="trucks">الشاحنات</a>
+      <a data-view="defects">العيوب</a>
+      <a data-view="quality">الجودة والغش</a>
+      <a data-view="reports">التقارير والإحصاءات</a>
+      <a data-view="alerts">التنبيهات <span class="badge">3</span></a>
+      <a data-view="users">المستخدمون</a>
+    </nav>
+  </aside>
+
+  <main>
+    <!-- HOME -->
+    <section class="view active" id="view-home">
+      <div class="topbar">
+        <div><h1>مهرجان بريدة للتمور — بوابة 1</h1><p>مراقبة وفحص التمور عند بوابات الدخول</p></div>
+        <div class="live"><span class="dot"></span> اتصال مباشر بالبوابة</div>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div class="lbl">عدد الشاحنات اليوم</div><div class="val">1,245</div><div class="delta up">▲ 12%</div></div>
+        <div class="kpi"><div class="lbl">عدد العبوات المفحوصة</div><div class="val">28,560</div><div class="delta up">▲ 18%</div></div>
+        <div class="kpi"><div class="lbl">مطابق مبدئيًا</div><div class="val" style="color:var(--ok)">95%</div><div class="delta up">27,132 عبوة</div></div>
+        <div class="kpi"><div class="lbl">يتطلب تحقق اللجنة</div><div class="val" style="color:var(--danger)">5%</div><div class="delta down">1,428 عبوة</div></div>
+        <div class="kpi"><div class="lbl">متوسط زمن الإجراء</div><div class="val">40 ثانية</div><div class="delta up">▼ 35%</div></div>
+      </div>
+      <div class="grid">
+        <div>
+          <div class="card">
+            <h3>دخول مباشر — فحص شاحنة <span class="tag" id="gateTime">10:24 صباحًا</span></h3>
+            <div class="gatewrap">
+              <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=1200&auto=format&fit=crop" alt="بوابة فحص">
+              <div class="scan"></div>
+            </div>
+            <div class="gate-meta">
+              <div>رقم الشاحنة<b id="mTruck">BRD-3921</b></div>
+              <div>الصنف المصرح<b id="mType">سكري</b></div>
+              <div>الكمية التقديرية<b id="mQty">6,000 كجم</b></div>
+              <div>البوابة<b>القصيم - بوابة 1</b></div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>أحدث الشاحنات <span class="tag">اضغط على أي صف لعرض تفاصيله</span></h3>
+            <table><thead><tr><th>الوقت</th><th>رقم الشاحنة</th><th>الصنف</th><th>الكمية</th><th>النتيجة</th></tr></thead>
+            <tbody id="shipmentsBody"></tbody></table>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <h3>نتيجة الفحص الشاملة <label class="tag" style="cursor:pointer;text-decoration:underline;color:var(--gold-2);">📤 استيراد نتيجة حقيقية (JSON)<input type="file" id="jsonImport" accept=".json" style="display:none;"></label></h3>
+            <div id="dataSourceTag" style="font-size:11px;color:var(--gold-2);margin-bottom:8px;"></div>
+            <div class="verdict ok" id="verdictBox">
+              <div class="icon">✓</div>
+              <div><b id="verdictTitle">مطابق مبدئيًا</b><small id="verdictSub">لا توجد مؤشرات غير طبيعية</small></div>
+            </div>
+            <div class="detail-grid" style="margin-top:12px;">
+              <div class="item"><div class="l">الصنف</div><div class="v" id="dType">سكري</div></div>
+              <div class="item"><div class="l">درجة النضج</div><div class="v">مناسب</div></div>
+              <div class="item"><div class="l" id="lMoist">نسبة الرطوبة</div><div class="v" id="dMoist">16%</div></div>
+              <div class="item"><div class="l" id="lNir">الحالة الداخلية (NIR)</div><div class="v" id="dNir">سليمة</div></div>
+            </div>
+            <div style="margin-top:14px;">
+              <div style="color:var(--muted);font-size:12px;">مؤشر التجانس</div>
+              <div class="homog"><span id="homogBar" style="width:95%"></span></div>
+              <div style="font-size:12px;margin-top:4px;color:var(--muted);"><span id="homogPct">95%</span> — الثمار الشاذة: <span id="oddCount">3</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>توزيع الأصناف اليوم</h3>
+            <table><tbody>
+              <tr><td>سكري</td><td style="width:60%"><div class="homog"><span style="width:52%;background:var(--gold)"></span></div></td><td>52%</td></tr>
+              <tr><td>خلاص</td><td><div class="homog"><span style="width:27%;background:var(--gold-2)"></span></div></td><td>27%</td></tr>
+              <tr><td>برحي</td><td><div class="homog"><span style="width:13%;background:var(--ok)"></span></div></td><td>13%</td></tr>
+              <tr><td>صفري</td><td><div class="homog"><span style="width:8%;background:var(--muted)"></span></div></td><td>8%</td></tr>
+            </tbody></table>
+          </div>
+        </div>
+      </div>
+      <p class="footer-note">نموذج تجريبي (Prototype) لبوابة الرقابة الذكية «رقيب» — بيانات توضيحية غير حقيقية</p>
+    </section>
+
+    <!-- ENTRY MANAGEMENT -->
+    <section class="view" id="view-entry">
+      <div class="topbar"><div><h1>إدارة الدخول</h1><p>سجل دخول الشاحنات وربطها بملف الشحنة الرقمي</p></div></div>
+      <div class="card">
+        <h3>سجل الدخول اليوم</h3>
+        <table><thead><tr><th>وقت الدخول</th><th>رقم الشاحنة</th><th>السائق</th><th>البوابة</th><th>الحالة</th></tr></thead>
+        <tbody>
+          <tr><td>10:24 ص</td><td>BRD-3921</td><td>محمد العتيبي</td><td>بوابة 1</td><td><span class="status ok">مسجّل ✓</span></td></tr>
+          <tr><td>10:21 ص</td><td>QSM-8843</td><td>خالد الدوسري</td><td>بوابة 1</td><td><span class="status ok">مسجّل ✓</span></td></tr>
+          <tr><td>10:18 ص</td><td>BRD-2210</td><td>سعد المطيري</td><td>بوابة 2</td><td><span class="status ok">مسجّل ✓</span></td></tr>
+          <tr><td>10:15 ص</td><td>QSM-7721</td><td>فهد القحطاني</td><td>بوابة 1</td><td><span class="status ok">مسجّل ✓</span></td></tr>
+          <tr><td>10:09 ص</td><td>BRD-4410</td><td>ناصر الشمري</td><td>بوابة 2</td><td><span class="status info">قيد المعالجة</span></td></tr>
+        </tbody></table>
+      </div>
+      <div class="detail-grid" style="margin-top:6px;">
+        <div class="card" style="margin-bottom:0;"><h3>متوسط زمن التسجيل</h3><div class="val" style="font-size:26px;font-family:'Cairo',sans-serif;font-weight:900;">48 ثانية</div></div>
+        <div class="card" style="margin-bottom:0;"><h3>نسبة الأتمتة</h3><div class="val" style="font-size:26px;font-family:'Cairo',sans-serif;font-weight:900;color:var(--ok);">99.2%</div></div>
+      </div>
+    </section>
+
+    <!-- SMART INSPECTION -->
+    <section class="view" id="view-inspect">
+      <div class="topbar"><div><h1>الفحص الذكي</h1><p>تحليل الحجم والتجانس بالرؤية الحاسوبية RGB والفحص الداخلي NIR</p></div></div>
+      <div class="grid">
+        <div class="card">
+          <h3>قياس كل ثمرة داخل العينة <span class="tag">شحنة BRD-3921 — 120 ثمرة</span></h3>
+          <div class="dategrid">
+            <div class="dcell">4.2 سم</div><div class="dcell">4.1 سم</div><div class="dcell">4.3 سم</div><div class="dcell">4.1 سم</div>
+            <div class="dcell">4.0 سم</div><div class="dcell">4.5 سم</div><div class="dcell">4.2 سم</div><div class="dcell">4.1 سم</div>
+            <div class="dcell">4.3 سم</div><div class="dcell">3.9 سم</div><div class="dcell odd">3.1 سم</div><div class="dcell">4.1 سم</div>
+          </div>
+          <div class="detail-grid" style="margin-top:14px;">
+            <div class="item"><div class="l">متوسط الطول</div><div class="v">4.1 سم</div></div>
+            <div class="item"><div class="l">متوسط العرض</div><div class="v">2.3 سم</div></div>
+            <div class="item"><div class="l">مؤشر التجانس</div><div class="v" style="color:var(--ok)">92%</div></div>
+            <div class="item"><div class="l">عدد الثمار الشاذة</div><div class="v" style="color:var(--danger)">3</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>الفحص الداخلي (NIR)</h3>
+          <div class="detail-grid">
+            <div class="item"><div class="l">نسبة الرطوبة</div><div class="v">16%</div></div>
+            <div class="item"><div class="l">مؤشر التلف</div><div class="v" style="color:var(--ok)">لا توجد مؤشرات</div></div>
+            <div class="item"><div class="l">الحالة الداخلية</div><div class="v">سليمة</div></div>
+            <div class="item"><div class="l">التقييم العام</div><div class="v" style="color:var(--ok)">مطابق مبدئيًا</div></div>
+          </div>
+          <div style="margin-top:14px;color:var(--muted);font-size:12px;line-height:1.9;">
+            دمج البيانات: RGB + تحليل الحجم + مؤشر التجانس + العيوب السطحية + NIR + الرطوبة + بيانات الشاحنة → تقييم رقابي موحد للشحنة.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRUCKS -->
+    <section class="view" id="view-trucks">
+      <div class="topbar"><div><h1>الشاحنات</h1><p>كل الشاحنات الداخلة اليوم وحالة الفحص لكل شحنة</p></div></div>
+      <div class="card">
+        <table><thead><tr><th>الوقت</th><th>رقم الشاحنة</th><th>الصنف</th><th>الكمية (كجم)</th><th>التجانس</th><th>النتيجة</th></tr></thead>
+        <tbody>
+          <tr><td>10:24 ص</td><td>BRD-3921</td><td>سكري</td><td>6,000</td><td>95%</td><td><span class="status ok">✓ مطابق</span></td></tr>
+          <tr><td>10:21 ص</td><td>QSM-8843</td><td>خلاص</td><td>4,500</td><td>93%</td><td><span class="status ok">✓ مطابق</span></td></tr>
+          <tr><td>10:18 ص</td><td>BRD-2210</td><td>صفري</td><td>5,200</td><td>68%</td><td><span class="status warn">⚠ يتطلب تحقق</span></td></tr>
+          <tr><td>10:15 ص</td><td>QSM-7721</td><td>برحي</td><td>3,800</td><td>97%</td><td><span class="status ok">✓ مطابق</span></td></tr>
+          <tr><td>10:12 ص</td><td>BRD-6680</td><td>سكري</td><td>6,100</td><td>96%</td><td><span class="status ok">✓ مطابق</span></td></tr>
+          <tr><td>10:05 ص</td><td>QSM-1187</td><td>خلاص</td><td>4,900</td><td>90%</td><td><span class="status ok">✓ مطابق</span></td></tr>
+        </tbody></table>
+      </div>
+    </section>
+
+    <!-- DEFECTS -->
+    <section class="view" id="view-defects">
+      <div class="topbar"><div><h1>العيوب</h1><p>تصنيف العيوب السطحية والداخلية المكتشفة اليوم</p></div></div>
+      <div class="grid">
+        <div class="card">
+          <h3>أنواع العيوب المكتشفة</h3>
+          <table><tbody>
+            <tr><td>تشققات سطحية</td><td style="width:55%"><div class="homog"><span style="width:41%"></span></div></td><td>41%</td></tr>
+            <tr><td>عدم تجانس الحجم</td><td><div class="homog"><span style="width:29%"></span></div></td><td>29%</td></tr>
+            <tr><td>ارتفاع الرطوبة</td><td><div class="homog"><span style="width:18%"></span></div></td><td>18%</td></tr>
+            <tr><td>اشتباه بتلف داخلي</td><td><div class="homog"><span style="width:12%"></span></div></td><td>12%</td></tr>
+          </tbody></table>
+        </div>
+        <div class="card">
+          <h3>الشحنات المحالة اليوم</h3>
+          <table><thead><tr><th>الشاحنة</th><th>سبب الإحالة</th></tr></thead><tbody>
+            <tr><td>BRD-2210</td><td>اختلاف غير طبيعي في أحجام الثمار</td></tr>
+            <tr><td>QSM-5541</td><td>ارتفاع مؤشر الرطوبة</td></tr>
+            <tr><td>BRD-7790</td><td>اشتباه بعيب داخلي</td></tr>
+          </tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUALITY & FRAUD -->
+    <section class="view" id="view-quality">
+      <div class="topbar"><div><h1>الجودة والغش</h1><p>رصد مؤشرات الاشتباه دون تصنيف تلقائي كغش تجاري — القرار للجنة المختصة</p></div></div>
+      <div class="card">
+        <h3>حالات تتطلب مراجعة اللجنة</h3>
+        <table><thead><tr><th>الشاحنة</th><th>الصنف</th><th>مؤشر التجانس</th><th>الملاحظة</th></tr></thead><tbody>
+          <tr><td>BRD-2210</td><td>صفري</td><td style="color:var(--danger)">68%</td><td>ترتيب ظاهري موحّد يخفي تباين داخلي بالحجم</td></tr>
+          <tr><td>QSM-5541</td><td>خلاص</td><td style="color:var(--warn)">74%</td><td>ارتفاع الرطوبة عن الحد المعتاد</td></tr>
+        </tbody></table>
+      </div>
+      <div class="card">
+        <h3>ملاحظة</h3>
+        <p style="color:var(--muted);font-size:13px;line-height:1.9;">لا يصنّف النظام أي حالة تلقائيًا على أنها غش تجاري، وإنما يرصد مؤشرات الاشتباه ويحيلها إلى المختص لاتخاذ القرار النهائي.</p>
+      </div>
+    </section>
+
+    <!-- REPORTS -->
+    <section class="view" id="view-reports">
+      <div class="topbar"><div><h1>التقارير والإحصاءات</h1><p>ملخص أداء البوابة لهذا اليوم</p></div></div>
+      <div class="kpis">
+        <div class="kpi"><div class="lbl">إجمالي الشحنات</div><div class="val">1,245</div></div>
+        <div class="kpi"><div class="lbl">متوسط التجانس</div><div class="val">91%</div></div>
+        <div class="kpi"><div class="lbl">نسبة الإحالة للجنة</div><div class="val" style="color:var(--danger)">5%</div></div>
+        <div class="kpi"><div class="lbl">متوسط زمن الإجراء</div><div class="val">40 ثانية</div></div>
+      </div>
+      <div class="card">
+        <h3>توزيع النتائج خلال آخر 7 أيام</h3>
+        <table><thead><tr><th>اليوم</th><th>مطابق مبدئيًا</th><th>يتطلب تحقق</th></tr></thead><tbody>
+          <tr><td>السبت</td><td>95%</td><td>5%</td></tr>
+          <tr><td>الجمعة</td><td>93%</td><td>7%</td></tr>
+          <tr><td>الخميس</td><td>96%</td><td>4%</td></tr>
+          <tr><td>الأربعاء</td><td>94%</td><td>6%</td></tr>
+        </tbody></table>
+      </div>
+    </section>
+
+    <!-- ALERTS -->
+    <section class="view" id="view-alerts">
+      <div class="topbar"><div><h1>التنبيهات</h1><p>الحالات التي تحتاج إجراء أو مراجعة فورية</p></div></div>
+      <div class="card">
+        <div class="alertitem"><div class="ic">⚠</div><div><b>شحنة BRD-2210 محالة للجنة</b><small>اختلاف غير طبيعي في أحجام الثمار — 10:18 ص</small></div></div>
+        <div class="alertitem"><div class="ic">⚠</div><div><b>ارتفاع مؤشر الرطوبة</b><small>شحنة QSM-5541 — نسبة رطوبة 24% — 09:52 ص</small></div></div>
+        <div class="alertitem"><div class="ic">⚠</div><div><b>اشتباه بعيب داخلي</b><small>شحنة BRD-7790 — يتطلب فحص NIR إضافي — 09:30 ص</small></div></div>
+      </div>
+    </section>
+
+    <!-- USERS -->
+    <section class="view" id="view-users">
+      <div class="topbar"><div><h1>المستخدمون</h1><p>فريق اللجنة ومسؤولو النظام</p></div></div>
+      <div class="card">
+        <div class="userrow"><div class="avatar">ل</div><div><b>لولوه الغدير</b><small style="color:var(--muted)">رئيسة لجنة الجودة</small></div><span class="chip" style="margin-right:auto">نشط الآن</span></div>
+        <div class="userrow"><div class="avatar">د</div><div><b>دانه الثنيان</b><small style="color:var(--muted)">مفتشة رقابة</small></div><span class="chip" style="margin-right:auto">نشط الآن</span></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const shipments = [
+  {time:"10:24 ص", truck:"BRD-3921", type:"سكري", qty:"6,000", status:"ok", moist:"16%", nir:"سليمة", homog:95, odd:3},
+  {time:"10:21 ص", truck:"QSM-8843", type:"خلاص", qty:"4,500", status:"ok", moist:"14%", nir:"سليمة", homog:93, odd:2},
+  {time:"10:18 ص", truck:"BRD-2210", type:"صفري", qty:"5,200", status:"warn", moist:"22%", nir:"اشتباه بعيب داخلي", homog:68, odd:14},
+  {time:"10:15 ص", truck:"QSM-7721", type:"برحي", qty:"3,800", status:"ok", moist:"15%", nir:"سليمة", homog:97, odd:1},
+  {time:"10:12 ص", truck:"BRD-6680", type:"سكري", qty:"6,100", status:"ok", moist:"16%", nir:"سليمة", homog:96, odd:4},
+];
+const tbody = document.getElementById('shipmentsBody');
+function renderHome(){
+  tbody.innerHTML = shipments.map((s,i)=>`
+    <tr class="row${i===0?' sel':''}" data-i="${i}">
+      <td>${s.time}</td><td>${s.truck}</td><td>${s.type}</td><td>${s.qty}</td>
+      <td><span class="status ${s.status}">${s.status==='ok'?'✓ مطابق':'⚠ يتطلب تحقق'}</span></td>
+    </tr>`).join('');
+  document.querySelectorAll('#shipmentsBody tr.row').forEach(r=>r.addEventListener('click', ()=>select(+r.dataset.i)));
+}
+function select(i){
+  const s = shipments[i];
+  document.querySelectorAll('#shipmentsBody tr.row').forEach(r=>r.classList.remove('sel'));
+  document.querySelector(`#shipmentsBody tr.row[data-i="${i}"]`).classList.add('sel');
+  document.getElementById('mTruck').textContent = s.truck;
+  document.getElementById('mType').textContent = s.type;
+  document.getElementById('mQty').textContent = s.qty + ' كجم';
+  document.getElementById('gateTime').textContent = s.time;
+  document.getElementById('dType').textContent = s.type;
+  document.getElementById('dMoist').textContent = s.moist;
+  document.getElementById('dNir').textContent = s.nir;
+  document.getElementById('homogBar').style.width = s.homog + '%';
+  document.getElementById('homogPct').textContent = s.homog + '%';
+  document.getElementById('oddCount').textContent = s.odd;
+  const vb = document.getElementById('verdictBox'), vt = document.getElementById('verdictTitle'), vs = document.getElementById('verdictSub');
+  if(s.status==='ok'){ vb.className='verdict ok'; vb.querySelector('.icon').textContent='✓'; vt.textContent='مطابق مبدئيًا'; vs.textContent='لا توجد مؤشرات غير طبيعية'; }
+  else{ vb.className='verdict warn'; vb.querySelector('.icon').textContent='⚠'; vt.textContent='يتطلب تحقق اللجنة'; vs.textContent=s.nir; }
+}
+renderHome(); select(0);
+
+// navigation
+document.querySelectorAll('#mainNav a').forEach(link=>{
+  link.addEventListener('click', ()=>{
+    document.querySelectorAll('#mainNav a').forEach(a=>a.classList.remove('active'));
+    link.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+link.dataset.view).classList.add('active');
+    window.scrollTo(0,0);
+  });
+});
+</script>
+</body>
+</html>
